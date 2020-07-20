@@ -16,6 +16,10 @@ export class OutcomesService {
         return this.outcomeModel.find({ learningObjectId }).exec();
     }
 
+    async deleteOutcomesForLearningObject(learningObjectId: string) {
+        return this.outcomeModel.deleteMany({ learningObjectId: learningObjectId}).exec();
+    }
+
     async create(outcomeWriteDTO: OutcomeWriteDTO, learningObjectId: string ): Promise<void> {
       const createdOutcome = new this.outcomeModel({ ...outcomeWriteDTO, learningObjectId, lastUpdated: Date.now(), _id: new Types.ObjectId() });
       await createdOutcome.save();

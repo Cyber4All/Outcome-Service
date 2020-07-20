@@ -10,11 +10,12 @@ import { RouteParameterDTO } from 'src/DTO/RouteParameter.DTO';
 import { Outcome } from 'src/Models/Outcome.Schema';
 import { Request } from 'express';
 import { GuidelineDTO } from 'src/DTO/GuidelineReadDTO';
+import { JwtStrategy } from './jwt.strategy';
 
 @Controller()
 export class OutcomesController {
 
-  constructor(private outcomeService: OutcomesService) {}
+  constructor(private outcomeService: OutcomesService, private jwt: JwtStrategy) {}
 
   @ApiOkResponse({ description: 'OK' })
   @ApiBadRequestResponse({ description: 'Invalid username' })
@@ -65,6 +66,30 @@ export class OutcomesController {
         outcomeResponses.push(outcomeResponse);
     }
     return outcomeResponses;
+  }
+
+  @ApiOkResponse({ description: 'OK' })
+  @ApiBadRequestResponse({ description: 'Invalid username' })
+  @ApiForbiddenResponse({ description: 'If the object is waiting, in review, proofing or released and requester is not the author || The requester is not the author' })
+  @ApiNotFoundResponse({ description: 'User is not found' })
+  @Delete('/users/:username/learning-objects/:learningObjectID/outcomes')
+  @UsePipes(ValidationPipe)
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  async deleteOutcomesForLearningObject(@Param() routeParameterDTO: RouteParameterDTO, @Req() request: Request): Promise<void> {
+
+    const token = await this.jwt.validate(request);
+
+    // Checks to see if the token is a service token. If the token is not a service key, check to make sure that the learning object exists
+    if (!token.user.SERVICE_KEY) {
+      const learningObject = await this.getLearningObject(routeParameterDTO.username, routeParameterDTO.learningObjectID, request.headers.authorization);
+    }
+
+    const user = await this.getUser(routeParameterDTO.username);
+
+    const outcomes = await this.outcomeService.findOutcomesForLearningObject(routeParameterDTO.learningObjectID);
+     
+    await this.outcomeService.deleteOutcomesForLearningObject(routeParameterDTO.learningObjectID);
   }
 
   @ApiBadRequestResponse({ description: 'Invalid bloom || Invalid verb || Invalid username'})
