@@ -2,9 +2,14 @@ defaults: &defaults
     working_directory: ~/outcome-service
     docker:
         - image: cyber4all/circleci-aws:docker-git
-version: 2.1
 orbs:
+  docker: circleci/docker@1.4.0
+  aws-cli: circleci/aws-cli@1.2.1
   node: circleci/node@1.1.6
+commands:
+  install-aws: aws-cli/install
+  setup-aws-cli: aws-cli/setup
+version: 2.1
 jobs:
     build:
         executor:
@@ -46,6 +51,11 @@ jobs:
             - attach_workspace: 
                 at: ~/outcome-service
             - setup_remote_docker
+            - setup-aws-cli:
+                aws-access-key-id: AWS_ECS_AccessKey
+                aws-region: AWS_REGION_N_VA
+                aws-secret-access-key: AWS_ECS_SecretKey
+                version: "1"
             - run:
                 name: Login to docker
                 command: docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
@@ -65,7 +75,6 @@ jobs:
                     export DOCKER_IMAGE="${DOCKER_USER_ORG}/outcome-service:${SEMVER}"
                     chmod +x ./deploy.sh
                     sh ./deploy.sh
-
 workflows:
     build-and-test:
         jobs:
@@ -89,6 +98,7 @@ workflows:
                     - build
                 context:
                     - DockerHub
+                    - AWS
                 filters:
                     branches:
                         only: /master/ 
