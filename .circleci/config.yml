@@ -52,9 +52,9 @@ jobs:
                 at: ~/outcome-service
             - setup_remote_docker
             - setup-aws-cli:
-                aws-access-key-id: AWS_ECS_AccessKey
+                aws-access-key-id: MACHINE_AWS_ECS_AccessKey
                 aws-region: AWS_REGION_N_VA
-                aws-secret-access-key: AWS_ECS_SecretKey
+                aws-secret-access-key: MACHINE_AWS_ECS_SecretKey
                 version: "1"
             - run:
                 name: Login to docker
